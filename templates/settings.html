@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h4>Material Settings</h4>
+    </div>
+    <div class="card-body">
+        <form id="settingsForm" method="POST" action="/settings">
+            <!-- SS Sheet Prices Section -->
+            <div class="card mb-3">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">SS Sheet Prices (per kg)</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">1.2mm Sheet</label>
+                            <div class="input-group">
+                                <span class="input-group-text">PKR</span>
+                                <input type="number" class="form-control" name="sheet_1_2_price" id="sheet_1_2_price" value="{{ prices.sheet_prices[1.2] }}" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">1.5mm Sheet</label>
+                            <div class="input-group">
+                                <span class="input-group-text">PKR</span>
+                                <input type="number" class="form-control" name="sheet_1_5_price" id="sheet_1_5_price" value="{{ prices.sheet_prices[1.5] }}" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">2.0mm Sheet</label>
+                            <div class="input-group">
+                                <span class="input-group-text">PKR</span>
+                                <input type="number" class="form-control" name="sheet_2_0_price" id="sheet_2_0_price" value="{{ prices.sheet_prices[2.0] }}" required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SS Tube Prices Section -->
+            <div class="card mb-3">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">SS Tube Prices (per ft)</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">1.5" × 1.5" (1.5mm)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">PKR</span>
+                                <input type="number" class="form-control" name="tube_1_5_price" id="tube_1_5_price" value="{{ prices.tube_prices['1.5x1.5'] }}" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">2" × 2" (1.5mm)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">PKR</span>
+                                <input type="number" class="form-control" name="tube_2_0_price" id="tube_2_0_price" value="{{ prices.tube_prices['2.0x2.0'] }}" required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Wheel Prices Section -->
+            <div class="card mb-3">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">Wheel Prices (per set of 4)</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">3" Heavy Duty Wheels</label>
+                            <div class="input-group">
+                                <span class="input-group-text">PKR</span>
+                                <input type="number" class="form-control" name="wheel_3_price" id="wheel_3_price" value="{{ prices.wheel_prices['3'] }}" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">4" Heavy Duty Wheels</label>
+                            <div class="input-group">
+                                <span class="input-group-text">PKR</span>
+                                <input type="number" class="form-control" name="wheel_4_price" id="wheel_4_price" value="{{ prices.wheel_prices['4'] }}" required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-end">
+                <button type="submit" class="btn btn-primary">Save Settings</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const settingsForm = document.getElementById('settingsForm');
+    
+    if (settingsForm) {
+        settingsForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(settingsForm);
+            
+            fetch('/settings', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert('Settings saved successfully!');
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error saving settings');
+            });
+        });
+    }
+});
+</script>
+{% endblock %}

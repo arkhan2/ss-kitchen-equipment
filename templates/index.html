@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block content %}
+<ul class="nav nav-tabs" id="productTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="worktable-tab" data-bs-toggle="tab" data-bs-target="#worktable" type="button" role="tab">Work Table</button>
+    </li>
+    <!-- Add more product tabs here -->
+</ul>
+
+<div class="tab-content mt-3" id="productTabsContent">
+    <div class="tab-pane fade show active" id="worktable" role="tabpanel">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Work Table Calculator</h4>
+                    </div>
+                    <div class="card-body">
+                        <form id="calculatorForm">
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Length (inches)</label>
+                                    <input type="number" class="form-control" id="length" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Width (inches)</label>
+                                    <input type="number" class="form-control" id="width" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Height (inches)</label>
+                                    <input type="number" class="form-control" id="height" required>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Top Thickness</label>
+                                    <select class="form-select" id="thickness" required>
+                                        <option value="1.2">1.2 mm</option>
+                                        <option value="1.5">1.5 mm</option>
+                                        <option value="2.0">2.0 mm</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Under Shelves</label>
+                                    <select class="form-select" id="undershelves">
+                                        <option value="0">No Shelf</option>
+                                        <option value="1">One Shelf</option>
+                                        <option value="2">Two Shelves</option>
+                                        <option value="3">Three Shelves</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Tube Size</label>
+                                    <select class="form-select" id="tubeSize" required>
+                                        <option value="1.5x1.5">1.5" × 1.5"</option>
+                                        <option value="2.0x2.0">2" × 2"</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Wheels</label>
+                                    <select class="form-select" id="wheelSize">
+                                        <option value="3">3" Heavy Duty</option>
+                                        <option value="4">4" Heavy Duty</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">Calculate Price</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Price Breakdown</h4>
+                    </div>
+                    <div class="card-body">
+                        <div id="priceBreakdown" style="display: none;">
+                            <div class="mb-3">
+                                <label class="fw-bold">Material Cost:</label>
+                                <span id="materialCost" class="float-end">PKR 0</span>
+                            </div>
+                            <div class="mb-3">
+                                <label class="fw-bold">Labor Cost:</label>
+                                <span id="laborCost" class="float-end">PKR 0</span>
+                            </div>
+                            <div class="mb-3">
+                                <label class="fw-bold">Profit:</label>
+                                <span id="profit" class="float-end">PKR 0</span>
+                            </div>
+                            <hr>
+                            <div>
+                                <label class="fw-bold">Total Price:</label>
+                                <span id="totalPrice" class="float-end">PKR 0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('calculatorForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = {
+        dimensions: {
+            length: parseFloat(document.getElementById('length').value),
+            width: parseFloat(document.getElementById('width').value),
+            height: parseFloat(document.getElementById('height').value)
+        },
+        top_thickness: parseFloat(document.getElementById('thickness').value),
+        undershelves: parseInt(document.getElementById('undershelves').value),
+        tube_size: document.getElementById('tubeSize').value,
+        wheel_size: document.getElementById('wheelSize').value
+    };
+
+    try {
+        const response = await fetch('/calculate_price', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        });
+
+        const data = await response.json();
+        
+        // Update price breakdown
+        document.getElementById('materialCost').textContent = `PKR ${data.material_cost}`;
+        document.getElementById('laborCost').textContent = `PKR ${data.labor_cost}`;
+        document.getElementById('profit').textContent = `PKR ${data.profit}`;
+        document.getElementById('totalPrice').textContent = `PKR ${data.total_price}`;
+        document.getElementById('priceBreakdown').style.display = 'block';
+
+        // Update product description
+        const description = generateDescription(formData);
+        // document.getElementById('descriptionText').textContent = description;
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error calculating price. Please try again.');
+    }
+});
+
+function generateDescription(formData) {
+    let description = `Stainless Steel Work Table: ${formData.dimensions.length}"L x ${formData.dimensions.width}"W x ${formData.dimensions.height}"H`;
+    description += `\nTop: ${formData.top_thickness}mm thickness`;
+    
+    if (formData.undershelves > 0) {
+        description += `\nUndershelves: ${formData.undershelves} shelf(s)`;
+    }
+    
+    description += `\nLegs: ${formData.tube_size} square tube`;
+    
+    if (formData.wheel_size !== 'No Wheels') {
+        description += `\nWheels: ${formData.wheel_size}`;
+    }
+    
+    return description;
+}
+</script>
+{% endblock %}
