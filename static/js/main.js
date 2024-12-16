@@ -1,6 +1,27 @@
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM Content Loaded');
     
+    // Handle undershelf selection
+    const undershelvesSelect = document.getElementById('undershelves');
+    const undershelfThickness = document.getElementById('undershelfThickness');
+
+    if (undershelvesSelect && undershelfThickness) {
+        console.log('Undershelf elements found');
+        
+        undershelvesSelect.addEventListener('change', function() {
+            const hasUndershelves = parseInt(this.value) > 0;
+            console.log('Undershelf value changed:', this.value, 'hasUndershelves:', hasUndershelves);
+            undershelfThickness.disabled = !hasUndershelves;
+        });
+
+        // Initialize undershelf thickness state
+        const initialValue = parseInt(undershelvesSelect.value) > 0;
+        console.log('Initial undershelf value:', undershelvesSelect.value, 'enable thickness:', initialValue);
+        undershelfThickness.disabled = !initialValue;
+    } else {
+        console.log('Undershelf elements not found');
+    }
+    
     // Get the settings modal element
     const settingsModal = document.getElementById('settingsModal');
     
@@ -82,17 +103,91 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Unit conversion functions
+    const conversions = {
+        in: {
+            in: 1,
+            ft: 1/12,
+            mm: 25.4
+        },
+        ft: {
+            in: 12,
+            ft: 1,
+            mm: 304.8
+        },
+        mm: {
+            in: 0.0393701,
+            ft: 0.00328084,
+            mm: 1
+        }
+    };
+
+    function convertValue(value, fromUnit, toUnit) {
+        return value * conversions[fromUnit][toUnit];
+    }
+
+    // Handle unit selection
+    const unitRadios = document.querySelectorAll('input[name="unitSelector"]');
+    const unitLabels = document.querySelectorAll('.unit-label');
+    
+    unitRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.checked) {
+                const newUnit = this.value;
+                const oldUnit = localStorage.getItem('preferredUnit') || 'in';
+                
+                // Convert existing values
+                const inputs = ['length', 'width', 'height'];
+                inputs.forEach(id => {
+                    const input = document.getElementById(id);
+                    if (input.value) {
+                        input.value = (convertValue(parseFloat(input.value), oldUnit, newUnit)).toFixed(2);
+                    }
+                });
+
+                // Save preference and update labels
+                localStorage.setItem('preferredUnit', newUnit);
+                updateUnitLabels(newUnit);
+            }
+        });
+    });
+
+    // Load saved unit preference
+    const savedUnit = localStorage.getItem('preferredUnit') || 'in';
+    document.getElementById('unit' + savedUnit.charAt(0).toUpperCase() + savedUnit.slice(1)).checked = true;
+    updateUnitLabels(savedUnit);
+
+    function updateUnitLabels(unit) {
+        const unitLabels = document.querySelectorAll('.unit-label');
+        unitLabels.forEach(label => {
+            label.textContent = unit;
+        });
+    }
+
     // Handle calculator form submission
     const calculatorForm = document.getElementById('calculatorForm');
     if (calculatorForm) {
         calculatorForm.addEventListener('submit', function(e) {
             e.preventDefault();
             
+            const length = parseFloat(document.getElementById('length').value);
+            const width = parseFloat(document.getElementById('width').value);
+            const height = parseFloat(document.getElementById('height').value);
+            const thickness = document.getElementById('thickness').value;
+            const undershelf = document.getElementById('undershelf').checked;
+            const wheels = document.getElementById('wheels').value;
+            const currentUnit = document.querySelector('input[name="unitSelector"]:checked').value;
+
+            // Convert dimensions to inches for calculation
+            const lengthInches = convertValue(length, currentUnit, 'in');
+            const widthInches = convertValue(width, currentUnit, 'in');
+            const heightInches = convertValue(height, currentUnit, 'in');
+
             const formData = {
                 dimensions: {
-                    length: parseFloat(document.getElementById('length').value),
-                    width: parseFloat(document.getElementById('width').value),
-                    height: parseFloat(document.getElementById('height').value)
+                    length: lengthInches,
+                    width: widthInches,
+                    height: heightInches
                 },
                 top_thickness: parseFloat(document.getElementById('thickness').value),
                 undershelves: parseInt(document.getElementById('undershelves').value),

@@ -219,15 +219,30 @@ body {
     padding: 1.5rem;
 }
 
-/* Settings Icon Animation */
+/* Settings Icon Style */
 .settings-icon {
-    color: var(--system-blue);
-    transition: var(--transition-bounce);
-    font-size: 1.25rem;
+    border: none !important;
+    padding: 0;
+    background: none !important;
+    box-shadow: none !important;
 }
 
-.settings-icon:hover {
-    transform: rotate(30deg);
+.settings-icon:hover,
+.settings-icon:focus,
+.settings-icon:active {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.settings-icon i {
+    font-size: 1.5rem;
+    transition: transform 0.3s ease-in-out;
+    display: inline-block;
+}
+
+.settings-icon:hover i {
+    transform: rotate(180deg);
 }
 
 /* Responsive Design */
