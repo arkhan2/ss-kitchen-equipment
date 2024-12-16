@@ -33,6 +33,158 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Icons', 'Helvetica Neue', sans-serif;
     -webkit-font-smoothing: antialiased;
     line-height: 1.5;
+    padding: 1rem 0;
+}
+
+/* Navigation Bar - Translucent effect */
+.navbar {
+    background-color: rgba(255, 255, 255, 0.8) !important;
+    backdrop-filter: var(--backdrop-blur);
+    -webkit-backdrop-filter: var(--backdrop-blur);
+    border-bottom: 1px solid var(--system-separator);
+    padding: 1rem 0;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.navbar-brand {
+    color: var(--system-label) !important;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
+/* Cards */
+.card {
+    background-color: var(--system-secondary-background);
+    border: 1px solid var(--system-separator);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition-fast);
+}
+
+.card:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.card-header {
+    background-color: var(--system-secondary-background);
+    border-bottom: 1px solid var(--system-separator);
+    padding: 1rem;
+}
+
+.card-header h4, 
+.card-header h6 {
+    color: var(--system-label);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 0;
+}
+
+.card-body {
+    padding: 1.25rem;
+}
+
+/* Form Elements */
+.form-control {
+    border: 1px solid var(--system-separator);
+    border-radius: var(--radius-sm);
+    color: var(--system-label);
+    transition: var(--transition-fast);
+}
+
+.form-control:focus {
+    border-color: var(--system-blue);
+    box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.1);
+}
+
+.input-group-text {
+    background-color: var(--system-grouped-background);
+    border: 1px solid var(--system-separator);
+    color: var(--system-secondary-label);
+}
+
+/* Buttons */
+.btn-primary {
+    background-color: var(--system-blue);
+    border: none;
+    border-radius: var(--radius-sm);
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    transition: var(--transition-fast);
+}
+
+.btn-primary:hover {
+    background-color: #0066CC;
+    transform: translateY(-1px);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}
+
+/* Settings Modal */
+.modal-content {
+    border: none;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+}
+
+.modal-header {
+    border-bottom: 1px solid var(--system-separator);
+    padding: 1.25rem;
+}
+
+.modal-body {
+    padding: 1.25rem;
+}
+
+.modal-footer {
+    border-top: 1px solid var(--system-separator);
+    padding: 1.25rem;
+}
+
+/* Tube Lists */
+#squareTubeList,
+#roundTubeList {
+    gap: 0.5rem;
+}
+
+.tube-tag {
+    background-color: var(--system-grouped-background);
+    border-radius: var(--radius-sm);
+    color: var(--system-label);
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    margin: 0.25rem;
+}
+
+.tube-tag .remove-btn {
+    background: none;
+    border: none;
+    color: var(--system-red);
+    cursor: pointer;
+    font-size: 1.25rem;
+    line-height: 1;
+    margin-left: 0.5rem;
+    padding: 0;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    
+    .card {
+        margin-bottom: 1rem;
+    }
+    
+    .modal-dialog {
+        margin: 0.5rem;
+    }
 }
 
 /* Navigation Bar - Translucent effect */
@@ -84,93 +236,6 @@ body {
     box-shadow: var(--shadow-sm);
 }
 
-/* Cards - SF Style with depth */
-.card {
-    background-color: var(--system-secondary-background);
-    border: none;
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);
-    margin-bottom: 1.5rem;
-    transition: var(--transition-bounce);
-    overflow: hidden;
-}
-
-.card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
-}
-
-.card-header {
-    background-color: transparent;
-    border-bottom: 1px solid var(--system-separator);
-    padding: 1.25rem;
-}
-
-.card-header h4 {
-    color: var(--system-label);
-    font-weight: 600;
-    margin: 0;
-    letter-spacing: -0.01em;
-}
-
-.card-body {
-    padding: 1.5rem;
-}
-
-/* Form Elements - SF Style */
-.form-label {
-    color: var(--system-secondary-label);
-    font-weight: 500;
-    margin-bottom: 0.5rem;
-    font-size: 0.9375rem;
-}
-
-.form-control, .form-select {
-    border: 1px solid var(--system-separator);
-    border-radius: var(--radius-md);
-    padding: 0.75rem 1rem;
-    transition: var(--transition-fast);
-    font-size: 1rem;
-    color: var(--system-label);
-    background-color: var(--system-background);
-}
-
-.form-control:focus, .form-select:focus {
-    border-color: var(--system-blue);
-    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
-}
-
-.input-group-text {
-    background-color: var(--system-background);
-    border: 1px solid var(--system-separator);
-    color: var(--system-secondary-label);
-    font-weight: 500;
-}
-
-/* Buttons - SF Style */
-.btn {
-    font-weight: 600;
-    padding: 0.75rem 1.5rem;
-    border-radius: var(--radius-md);
-    transition: var(--transition-fast);
-    letter-spacing: -0.01em;
-}
-
-.btn-primary {
-    background-color: var(--system-blue);
-    border: none;
-}
-
-.btn-primary:hover {
-    background-color: #0062CC;
-    transform: translateY(-1px);
-}
-
-.btn-secondary {
-    background-color: var(--system-gray);
-    border: none;
-}
-
 /* Price Breakdown - SF Style */
 #priceBreakdown {
     font-size: 1rem;
@@ -194,29 +259,6 @@ body {
     font-weight: 600;
     font-size: 1.5rem;
     letter-spacing: -0.02em;
-}
-
-/* Settings Modal - SF Style */
-.modal-content {
-    border: none;
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-lg);
-    background-color: var(--system-secondary-background);
-}
-
-.modal-header {
-    border-bottom: 1px solid var(--system-separator);
-    padding: 1.25rem;
-}
-
-.modal-header .modal-title {
-    color: var(--system-label);
-    font-weight: 600;
-    letter-spacing: -0.01em;
-}
-
-.modal-body {
-    padding: 1.5rem;
 }
 
 /* Settings Icon Style */
@@ -355,4 +397,222 @@ body {
 
 .active-tab {
     border-bottom: 2px solid #0d6efd;
+}
+
+/* Settings Page Specific Styles */
+.settings-section {
+    margin-bottom: 1.5rem;
+}
+
+.settings-card {
+    margin-bottom: 1.5rem;
+}
+
+.settings-card .card-header {
+    padding: 1rem 1.25rem;
+    background-color: var(--system-grouped-background);
+}
+
+.settings-card .card-body {
+    padding: 1.5rem;
+}
+
+.settings-form-group {
+    margin-bottom: 1.25rem;
+}
+
+.settings-input-group {
+    max-width: 300px;
+}
+
+/* Tube List Styles */
+#squareTubeList,
+#roundTubeList {
+    gap: 0.75rem !important;
+    margin-bottom: 1.25rem !important;
+}
+
+.tube-tag {
+    background-color: var(--system-grouped-background);
+    border-radius: var(--radius-sm);
+    padding: 0.5rem 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.tube-tag .remove-tube {
+    color: var(--system-gray);
+    cursor: pointer;
+    transition: var(--transition-fast);
+}
+
+.tube-tag .remove-tube:hover {
+    color: var(--system-label);
+}
+
+/* Settings Panel Styles */
+.settings-panel {
+    background-color: rgba(250, 250, 250, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.1);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.settings-card {
+    background-color: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.settings-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.settings-header {
+    padding: 16px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.settings-header h6 {
+    color: #1d1d1f;
+    font-weight: 600;
+}
+
+.form-label {
+    color: #86868b;
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.settings-input {
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    padding: 8px 12px;
+    transition: all 0.2s ease;
+    background-color: rgba(255, 255, 255, 0.9);
+}
+
+.settings-input:focus {
+    border-color: #0071e3;
+    box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.1);
+    outline: none;
+}
+
+.settings-badge {
+    background-color: #0071e3;
+    border-radius: 20px;
+    padding: 6px 12px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: white;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.settings-badge:hover {
+    background-color: #0077ED;
+}
+
+.settings-badge .btn-close {
+    padding: 0.25rem;
+    font-size: 0.75rem;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+}
+
+.settings-badge .btn-close:hover {
+    opacity: 1;
+}
+
+.settings-btn {
+    background-color: #0071e3;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    padding: 8px 16px;
+    font-weight: 500;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+}
+
+.settings-btn:hover {
+    background-color: #0077ED;
+    transform: translateY(-1px);
+}
+
+.settings-btn:active {
+    transform: translateY(1px);
+}
+
+.settings-toggle {
+    width: 48px;
+    height: 48px;
+    border-radius: 24px;
+    background-color: #0071e3;
+    border: none;
+    color: white;
+    box-shadow: 0 4px 12px rgba(0, 113, 227, 0.3);
+    transition: all 0.3s ease;
+}
+
+.settings-toggle:hover {
+    background-color: #0077ED;
+    transform: scale(1.05);
+}
+
+.settings-toggle:active {
+    transform: scale(0.95);
+}
+
+.input-group {
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.input-group-text {
+    background-color: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    color: #86868b;
+    font-size: 0.875rem;
+    padding: 0.5rem 0.75rem;
+}
+
+.input-group .form-control {
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    padding: 8px 12px;
+    transition: all 0.2s ease;
+}
+
+.input-group .form-control:focus {
+    border-color: #0071e3;
+    box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.1);
+    outline: none;
+}
+
+/* Badge styles for tube lists */
+.badge {
+    font-size: 0.9rem;
+    padding: 0.5rem 0.75rem;
+    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.badge .btn-close {
+    font-size: 0.7em;
+    padding: 0.25rem;
 }

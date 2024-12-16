@@ -60,7 +60,7 @@
                                     <div class="row">
                                         <div class="col-md-6">
                                             <label class="form-label" style="color: #666;">Top Thickness</label>
-                                            <select class="form-select" id="thickness" required style="border-color: #0066CC;">
+                                            <select class="form-select" id="thickness" name="thickness" data-type="thickness" required style="border-color: #0066CC;">
                                                 <option value="1.2">1.2 mm</option>
                                                 <option value="1.5">1.5 mm</option>
                                                 <option value="2.0">2.0 mm</option>
@@ -88,7 +88,7 @@
                                         </div>
                                         <div class="col-md-6">
                                             <label class="form-label" style="color: #666;">Undershelf Thickness</label>
-                                            <select class="form-select" id="undershelfThickness" disabled style="border-color: #28A745;">
+                                            <select class="form-select" id="undershelfThickness" name="undershelfThickness" data-type="thickness" disabled style="border-color: #28A745;">
                                                 <option value="1.2">1.2 mm</option>
                                                 <option value="1.5">1.5 mm</option>
                                                 <option value="2.0">2.0 mm</option>
@@ -107,7 +107,7 @@
                                     <div class="row">
                                         <div class="col-md-6">
                                             <label class="form-label" style="color: #666;">Tube Size</label>
-                                            <select class="form-select" id="tubeSize" required style="border-color: #0099CC;">
+                                            <select class="form-select" id="tubeSize" name="tubeSize" data-type="tube" required style="border-color: #0099CC;">
                                                 <option value="1.5x1.5">1.5" × 1.5"</option>
                                                 <option value="2.0x2.0">2" × 2"</option>
                                             </select>
@@ -126,9 +126,6 @@
                                         <div class="col-md-6">
                                             <label class="form-label" style="color: #666;">Wheels</label>
                                             <select class="form-select" id="wheelSize" style="border-color: #FF9900;">
-                                                <option value="3">3" Heavy Duty</option>
-                                                <option value="4">4" Heavy Duty</option>
-                                                <option value="5">5" Heavy Duty</option>
                                                 <option value="0">No Wheels</option>
                                             </select>
                                         </div>
@@ -156,8 +153,342 @@
         </div>
     </div>
 </div>
+
+<!-- Settings Panel -->
+<div class="position-fixed bottom-0 start-0 end-0 settings-panel" style="z-index: 1030; transform: translateY(100%);" id="settingsPanel">
+    <div class="container py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="mb-0 fw-bold" style="color: #1d1d1f;">Material Settings</h5>
+            <button type="button" class="btn-close" id="closeSettings" style="font-size: 1.2rem;"></button>
+        </div>
+        <form id="settingsForm" method="POST" action="/settings" class="row g-4">
+            <!-- SS Sheet Prices Section -->
+            <div class="col-md-4">
+                <div class="settings-card h-100">
+                    <div class="settings-header">
+                        <h6 class="mb-0">SS Sheet Price (per kg)</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">Sheet Price</label>
+                            <div class="input-group">
+                                <span class="input-group-text">PKR</span>
+                                <input type="number" class="form-control settings-input" name="sheet_price" id="sheet_price" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Add Sheet Thickness</label>
+                            <div class="input-group mb-2">
+                                <input type="number" class="form-control settings-input" id="newSheetThickness" placeholder="Thickness (mm)" step="0.1" style="min-width: 120px;">
+                                <button type="button" class="settings-btn" id="addSheetThickness">Add</button>
+                            </div>
+                            <div id="sheetThicknessList" class="d-flex flex-wrap gap-2">
+                                <!-- Sheet thickness tags will be added here -->
+                            </div>
+                            <input type="hidden" name="sheet_thicknesses" id="sheetThicknesses">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SS Tube Prices Section -->
+            <div class="col-md-4">
+                <div class="settings-card h-100">
+                    <div class="settings-header">
+                        <h6 class="mb-0">SS Tube Prices</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">Add Square Tube</label>
+                            <div class="input-group mb-2">
+                                <input type="number" class="form-control settings-input" id="newSquareTubeWidth" placeholder="Width" step="0.1" style="min-width: 100px;">
+                                <span class="input-group-text">×</span>
+                                <input type="number" class="form-control settings-input" id="newSquareTubeHeight" placeholder="Height" step="0.1" style="min-width: 100px;">
+                                <span class="input-group-text">PKR</span>
+                                <input type="number" class="form-control settings-input" id="newSquareTubePrice" placeholder="Price" style="min-width: 120px;">
+                                <button type="button" class="settings-btn" id="addSquareTube">Add</button>
+                            </div>
+                            <div id="squareTubeList" class="d-flex flex-wrap gap-2">
+                                <!-- Square tube tags will be added here -->
+                            </div>
+                            <input type="hidden" name="square_tube_sizes" id="squareTubeSizes">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Add Round Tube</label>
+                            <div class="input-group mb-2">
+                                <input type="number" class="form-control settings-input" id="newRoundTubeDia" placeholder="Diameter" step="0.1">
+                                <span class="input-group-text">PKR</span>
+                                <input type="number" class="form-control settings-input" id="newRoundTubePrice" placeholder="Price">
+                                <button type="button" class="settings-btn" id="addRoundTube">Add</button>
+                            </div>
+                            <div id="roundTubeList" class="d-flex flex-wrap gap-2">
+                                <!-- Round tube tags will be added here -->
+                            </div>
+                            <input type="hidden" name="round_tube_sizes" id="roundTubeSizes">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Wheel Prices Section -->
+            <div class="col-md-4">
+                <div class="settings-card h-100">
+                    <div class="settings-header">
+                        <h6 class="mb-0">Wheel Prices (per set of 4)</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">Add Wheel Size</label>
+                            <div class="input-group mb-2">
+                                <input type="number" class="form-control settings-input" id="newWheelSize" placeholder="Size (inches)" step="0.1" style="min-width: 120px;">
+                                <span class="input-group-text">PKR</span>
+                                <input type="number" class="form-control settings-input" id="newWheelPrice" placeholder="Price">
+                                <button type="button" class="settings-btn" id="addWheel">Add</button>
+                            </div>
+                            <div id="wheelList" class="d-flex flex-wrap gap-2">
+                                <!-- Wheel tags will be added here -->
+                            </div>
+                            <input type="hidden" name="wheel_sizes" id="wheelSizes">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12">
+                <div class="d-flex justify-content-end gap-2">
+                    <button type="submit" class="settings-btn px-4">Save Changes</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Settings Toggle Button -->
+<button class="settings-toggle position-fixed bottom-0 end-0 m-4 d-flex align-items-center justify-content-center" 
+    style="z-index: 1031;" 
+    id="toggleSettings">
+    <i class="bi bi-gear-fill fs-4"></i>
+</button>
+
 {% endblock %}
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const settingsPanel = document.getElementById('settingsPanel');
+        const toggleButton = document.getElementById('toggleSettings');
+        const closeButton = document.getElementById('closeSettings');
+        let isOpen = false;
+
+        // Settings Panel Toggle
+        function toggleSettings() {
+            isOpen = !isOpen;
+            settingsPanel.style.transform = isOpen ? 'translateY(0)' : 'translateY(100%)';
+            toggleButton.style.transform = isOpen ? 'rotate(180deg)' : 'rotate(0)';
+            toggleButton.style.transition = 'transform 0.3s ease-in-out';
+        }
+
+        toggleButton.addEventListener('click', toggleSettings);
+        closeButton.addEventListener('click', () => {
+            isOpen = true;
+            toggleSettings();
+        });
+
+        // Sheet Thickness Management
+        const sheetThicknessList = document.getElementById('sheetThicknessList');
+        const sheetThicknesses = document.getElementById('sheetThicknesses');
+        const newSheetThickness = document.getElementById('newSheetThickness');
+        const addSheetThicknessBtn = document.getElementById('addSheetThickness');
+        let thicknesses = [];
+
+        function updateSheetThicknessList() {
+            sheetThicknessList.innerHTML = '';
+            thicknesses.sort((a, b) => a - b);
+            thicknesses.forEach((thickness, index) => {
+                const badge = document.createElement('div');
+                badge.className = 'settings-badge';
+                badge.innerHTML = `
+                    ${thickness} mm
+                    <button type="button" class="btn-close btn-close-white" style="font-size: 0.5rem;" data-index="${index}"></button>
+                `;
+                sheetThicknessList.appendChild(badge);
+            });
+            sheetThicknesses.value = JSON.stringify(thicknesses);
+            
+            // Update thickness dropdowns in the calculator
+            const thicknessSelects = document.querySelectorAll('select[data-type="thickness"]');
+            thicknessSelects.forEach(select => {
+                const currentValue = select.value;
+                select.innerHTML = '';
+                thicknesses.forEach(thickness => {
+                    const option = document.createElement('option');
+                    option.value = thickness;
+                    option.textContent = `${thickness} mm`;
+                    select.appendChild(option);
+                });
+                // Restore previously selected value if it still exists
+                if (thicknesses.includes(parseFloat(currentValue))) {
+                    select.value = currentValue;
+                }
+            });
+        }
+
+        addSheetThicknessBtn.addEventListener('click', () => {
+            const thickness = parseFloat(newSheetThickness.value);
+            
+            if (thickness && !thicknesses.includes(thickness)) {
+                thicknesses.push(thickness);
+                updateSheetThicknessList();
+                newSheetThickness.value = '';
+            }
+        });
+
+        sheetThicknessList.addEventListener('click', (e) => {
+            if (e.target.classList.contains('btn-close')) {
+                const index = parseInt(e.target.dataset.index);
+                thicknesses.splice(index, 1);
+                updateSheetThicknessList();
+            }
+        });
+
+        // Load existing sheet thicknesses from settings
+        fetch('/settings')
+            .then(response => response.json())
+            .then(data => {
+                if (data.sheet_thicknesses) {
+                    thicknesses = JSON.parse(data.sheet_thicknesses);
+                    updateSheetThicknessList();
+                }
+            })
+            .catch(error => console.error('Error loading settings:', error));
+
+        // Square Tube Management
+        const squareTubeList = document.getElementById('squareTubeList');
+        const squareTubeSizes = document.getElementById('squareTubeSizes');
+        const newSquareTubeWidth = document.getElementById('newSquareTubeWidth');
+        const newSquareTubeHeight = document.getElementById('newSquareTubeHeight');
+        const newSquareTubePrice = document.getElementById('newSquareTubePrice');
+        const addSquareTubeBtn = document.getElementById('addSquareTube');
+        let squareTubes = [];
+
+        function updateSquareTubeList() {
+            squareTubeList.innerHTML = '';
+            squareTubes.forEach((tube, index) => {
+                const badge = document.createElement('div');
+                badge.className = 'settings-badge';
+                badge.innerHTML = `
+                    ${tube.width}" × ${tube.height}" - PKR ${tube.price}
+                    <button type="button" class="btn-close btn-close-white" style="font-size: 0.5rem;" data-index="${index}"></button>
+                `;
+                squareTubeList.appendChild(badge);
+            });
+            squareTubeSizes.value = JSON.stringify(squareTubes);
+            
+            // Update tube size dropdown in the calculator
+            const tubeSizeSelect = document.getElementById('tubeSize');
+            if (tubeSizeSelect) {
+                tubeSizeSelect.innerHTML = '';
+                squareTubes.forEach(tube => {
+                    tubeSizeSelect.innerHTML += `<option value="${tube.width}x${tube.height}">${tube.width}" × ${tube.height}"</option>`;
+                });
+            }
+        }
+
+        addSquareTubeBtn.addEventListener('click', () => {
+            const width = parseFloat(newSquareTubeWidth.value);
+            const height = parseFloat(newSquareTubeHeight.value);
+            const price = parseFloat(newSquareTubePrice.value);
+            
+            if (width && height && price) {
+                squareTubes.push({ width, height, price });
+                updateSquareTubeList();
+                newSquareTubeWidth.value = '';
+                newSquareTubeHeight.value = '';
+                newSquareTubePrice.value = '';
+            }
+        });
+
+        squareTubeList.addEventListener('click', (e) => {
+            if (e.target.classList.contains('btn-close')) {
+                const index = parseInt(e.target.dataset.index);
+                squareTubes.splice(index, 1);
+                updateSquareTubeList();
+            }
+        });
+
+        // Load existing square tubes from settings
+        fetch('/settings')
+            .then(response => response.json())
+            .then(data => {
+                if (data.square_tube_sizes) {
+                    squareTubes = JSON.parse(data.square_tube_sizes);
+                    updateSquareTubeList();
+                }
+            })
+            .catch(error => console.error('Error loading settings:', error));
+
+        // Wheel Management
+        const wheelList = document.getElementById('wheelList');
+        const wheelSizes = document.getElementById('wheelSizes');
+        const newWheelSize = document.getElementById('newWheelSize');
+        const newWheelPrice = document.getElementById('newWheelPrice');
+        const addWheelBtn = document.getElementById('addWheel');
+        let wheels = [];
+
+        function updateWheelList() {
+            wheelList.innerHTML = '';
+            wheels.forEach((wheel, index) => {
+                const badge = document.createElement('div');
+                badge.className = 'settings-badge';
+                badge.innerHTML = `
+                    ${wheel.size}" - PKR ${wheel.price}
+                    <button type="button" class="btn-close btn-close-white" style="font-size: 0.5rem;" data-index="${index}"></button>
+                `;
+                wheelList.appendChild(badge);
+            });
+            wheelSizes.value = JSON.stringify(wheels);
+            
+            // Update wheel size dropdown in the calculator
+            const wheelSizeSelect = document.getElementById('wheelSize');
+            if (wheelSizeSelect) {
+                wheelSizeSelect.innerHTML = '<option value="0">No Wheels</option>';
+                wheels.forEach(wheel => {
+                    wheelSizeSelect.innerHTML += `<option value="${wheel.size}">${wheel.size}" Heavy Duty</option>`;
+                });
+            }
+        }
+
+        addWheelBtn.addEventListener('click', () => {
+            const size = parseFloat(newWheelSize.value);
+            const price = parseFloat(newWheelPrice.value);
+            
+            if (size && price) {
+                wheels.push({ size, price });
+                updateWheelList();
+                newWheelSize.value = '';
+                newWheelPrice.value = '';
+            }
+        });
+
+        wheelList.addEventListener('click', (e) => {
+            if (e.target.classList.contains('btn-close')) {
+                const index = parseInt(e.target.dataset.index);
+                wheels.splice(index, 1);
+                updateWheelList();
+            }
+        });
+
+        // Load existing wheels from settings
+        fetch('/settings')
+            .then(response => response.json())
+            .then(data => {
+                if (data.wheel_sizes) {
+                    wheels = JSON.parse(data.wheel_sizes);
+                    updateWheelList();
+                }
+            })
+            .catch(error => console.error('Error loading settings:', error));
+    });
+</script>
 {% endblock %}

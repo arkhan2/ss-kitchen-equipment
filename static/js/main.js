@@ -1,233 +1,254 @@
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM Content Loaded');
-    
-    // Handle undershelf selection
-    const undershelvesSelect = document.getElementById('undershelves');
-    const undershelfThickness = document.getElementById('undershelfThickness');
+    // Initialize variables for tube sizes
+    let squareTubeSizes = [];
+    let roundTubeSizes = [];
 
-    if (undershelvesSelect && undershelfThickness) {
-        console.log('Undershelf elements found');
-        
-        undershelvesSelect.addEventListener('change', function() {
-            const hasUndershelves = parseInt(this.value) > 0;
-            console.log('Undershelf value changed:', this.value, 'hasUndershelves:', hasUndershelves);
-            undershelfThickness.disabled = !hasUndershelves;
+    // Function to update the square tube list display
+    function updateSquareTubeList() {
+        const tubeList = document.getElementById('squareTubeList');
+        if (!tubeList) return;
+
+        tubeList.innerHTML = '';
+        squareTubeSizes.forEach((tube, index) => {
+            const tag = document.createElement('div');
+            tag.className = 'badge bg-primary me-2 mb-2 p-2';
+            tag.innerHTML = `${tube.width}"×${tube.width}" - PKR ${tube.price} 
+                <button type="button" class="btn-close btn-close-white ms-2" 
+                    onclick="removeSquareTube(${index})"></button>`;
+            tubeList.appendChild(tag);
         });
-
-        // Initialize undershelf thickness state
-        const initialValue = parseInt(undershelvesSelect.value) > 0;
-        console.log('Initial undershelf value:', undershelvesSelect.value, 'enable thickness:', initialValue);
-        undershelfThickness.disabled = !initialValue;
-    } else {
-        console.log('Undershelf elements not found');
     }
-    
-    // Get the settings modal element
-    const settingsModal = document.getElementById('settingsModal');
-    
-    // Add event listener for when the modal is about to be shown
-    if (settingsModal) {
-        settingsModal.addEventListener('show.bs.modal', async function() {
-            try {
-                // Fetch current settings
-                const response = await fetch('/settings');
-                const data = await response.text();
-                
-                // Extract prices from the HTML response using a temporary div
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = data;
-                
-                // Find all input fields in both the modal and the fetched data
-                const modalForm = document.getElementById('settingsForm');
-                const fetchedForm = tempDiv.querySelector('#settingsForm');
-                
-                if (modalForm && fetchedForm) {
-                    // Update all input values
-                    const inputs = modalForm.querySelectorAll('input[type="number"]');
-                    inputs.forEach(input => {
-                        const fetchedInput = fetchedForm.querySelector(`#${input.id}`);
-                        if (fetchedInput) {
-                            input.value = fetchedInput.value;
-                        }
-                    });
-                }
-            } catch (error) {
-                console.error('Error fetching settings:', error);
-                alert('Error loading settings');
-            }
-        });
 
-        // Clean up modal backdrop when the modal is hidden
-        settingsModal.addEventListener('hidden.bs.modal', function() {
-            const backdrop = document.querySelector('.modal-backdrop');
-            if (backdrop) {
-                backdrop.remove();
-            }
-            document.body.classList.remove('modal-open');
-            document.body.style.overflow = '';
-            document.body.style.paddingRight = '';
+    // Function to update the round tube list display
+    function updateRoundTubeList() {
+        const tubeList = document.getElementById('roundTubeList');
+        if (!tubeList) return;
+
+        tubeList.innerHTML = '';
+        roundTubeSizes.forEach((tube, index) => {
+            const tag = document.createElement('div');
+            tag.className = 'badge bg-primary me-2 mb-2 p-2';
+            tag.innerHTML = `${tube.diameter}" - PKR ${tube.price} 
+                <button type="button" class="btn-close btn-close-white ms-2" 
+                    onclick="removeRoundTube(${index})"></button>`;
+            tubeList.appendChild(tag);
         });
     }
 
     // Handle settings form submission
     const settingsForm = document.getElementById('settingsForm');
     if (settingsForm) {
-        settingsForm.addEventListener('submit', function(e) {
+        settingsForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            const formData = new FormData(settingsForm);
-            
-            fetch('/settings', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    // Close the modal properly
-                    const modal = bootstrap.Modal.getInstance(settingsModal);
-                    if (modal) {
-                        modal.hide();
-                    }
-                    
-                    // Show success message
-                    alert('Settings saved successfully!');
-                } else {
-                    alert('Error: ' + data.message);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Error saving settings');
-            });
-        });
-    }
-
-    // Unit conversion functions
-    const conversions = {
-        in: {
-            in: 1,
-            ft: 1/12,
-            mm: 25.4
-        },
-        ft: {
-            in: 12,
-            ft: 1,
-            mm: 304.8
-        },
-        mm: {
-            in: 0.0393701,
-            ft: 0.00328084,
-            mm: 1
-        }
-    };
-
-    function convertValue(value, fromUnit, toUnit) {
-        return value * conversions[fromUnit][toUnit];
-    }
-
-    // Handle unit selection
-    const unitRadios = document.querySelectorAll('input[name="unitSelector"]');
-    const unitLabels = document.querySelectorAll('.unit-label');
-    
-    unitRadios.forEach(radio => {
-        radio.addEventListener('change', function() {
-            if (this.checked) {
-                const newUnit = this.value;
-                const oldUnit = localStorage.getItem('preferredUnit') || 'in';
-                
-                // Convert existing values
-                const inputs = ['length', 'width', 'height'];
-                inputs.forEach(id => {
-                    const input = document.getElementById(id);
-                    if (input.value) {
-                        input.value = (convertValue(parseFloat(input.value), oldUnit, newUnit)).toFixed(2);
-                    }
+            try {
+                const formData = new FormData(this);
+                const response = await fetch('/settings', {
+                    method: 'POST',
+                    body: formData
                 });
-
-                // Save preference and update labels
-                localStorage.setItem('preferredUnit', newUnit);
-                updateUnitLabels(newUnit);
+                
+                if (response.ok) {
+                    window.location.href = '/'; // Redirect to home page after successful save
+                } else {
+                    alert('Failed to save settings');
+                }
+            } catch (error) {
+                console.error('Error saving settings:', error);
+                alert('Error saving settings');
             }
-        });
-    });
-
-    // Load saved unit preference
-    const savedUnit = localStorage.getItem('preferredUnit') || 'in';
-    document.getElementById('unit' + savedUnit.charAt(0).toUpperCase() + savedUnit.slice(1)).checked = true;
-    updateUnitLabels(savedUnit);
-
-    function updateUnitLabels(unit) {
-        const unitLabels = document.querySelectorAll('.unit-label');
-        unitLabels.forEach(label => {
-            label.textContent = unit;
         });
     }
 
     // Handle calculator form submission
     const calculatorForm = document.getElementById('calculatorForm');
     if (calculatorForm) {
-        calculatorForm.addEventListener('submit', function(e) {
+        calculatorForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            const length = parseFloat(document.getElementById('length').value);
-            const width = parseFloat(document.getElementById('width').value);
-            const height = parseFloat(document.getElementById('height').value);
-            const thickness = document.getElementById('thickness').value;
-            const undershelf = document.getElementById('undershelf').checked;
-            const wheels = document.getElementById('wheels').value;
-            const currentUnit = document.querySelector('input[name="unitSelector"]:checked').value;
-
-            // Convert dimensions to inches for calculation
-            const lengthInches = convertValue(length, currentUnit, 'in');
-            const widthInches = convertValue(width, currentUnit, 'in');
-            const heightInches = convertValue(height, currentUnit, 'in');
-
-            const formData = {
-                dimensions: {
-                    length: lengthInches,
-                    width: widthInches,
-                    height: heightInches
-                },
-                top_thickness: parseFloat(document.getElementById('thickness').value),
-                undershelves: parseInt(document.getElementById('undershelves').value),
-                tube_size: document.getElementById('tubeSize').value,
-                wheel_size: document.getElementById('wheelSize').value
-            };
-
-            fetch('/calculate_price', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData)
-            })
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('materialCost').textContent = `PKR ${data.material_cost}`;
-                document.getElementById('laborCost').textContent = `PKR ${data.labor_cost}`;
-                document.getElementById('profit').textContent = `PKR ${data.profit}`;
-                document.getElementById('totalPrice').textContent = `PKR ${data.total_price}`;
-                document.getElementById('priceBreakdown').style.display = 'block';
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Error calculating price');
-            });
-        });
-    }
-
-    // Add click handler for the gear icon
-    const settingsButton = document.getElementById('settingsButton');
-    if (settingsButton) {
-        console.log('Settings Button Found');
-        settingsButton.addEventListener('click', function(e) {
-            console.log('Settings Button Clicked');
-            e.preventDefault();
-            const modal = bootstrap.Modal.getInstance(settingsModal);
-            if (modal) {
-                modal.show();
+            try {
+                const formData = new FormData(this);
+                const response = await fetch('/calculate', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    displayResults(result);
+                } else {
+                    alert('Failed to calculate');
+                }
+            } catch (error) {
+                console.error('Error calculating:', error);
+                alert('Error calculating');
             }
         });
     }
+
+    // Function to display calculation results
+    function displayResults(result) {
+        const resultsDiv = document.getElementById('results');
+        if (!resultsDiv) return;
+
+        let html = '<h4>Cost Breakdown</h4>';
+        html += '<div class="table-responsive"><table class="table table-bordered">';
+        html += '<thead><tr><th>Component</th><th>Details</th><th>Cost (PKR)</th></tr></thead>';
+        html += '<tbody>';
+
+        // Add SS Sheet details
+        html += `<tr>
+            <td>SS Sheet</td>
+            <td>${result.sheet_details}</td>
+            <td>${result.sheet_cost.toFixed(2)}</td>
+        </tr>`;
+
+        // Add Square Tube details if used
+        if (result.square_tube_cost > 0) {
+            html += `<tr>
+                <td>Square Tube</td>
+                <td>${result.square_tube_details}</td>
+                <td>${result.square_tube_cost.toFixed(2)}</td>
+            </tr>`;
+        }
+
+        // Add Round Tube details if used
+        if (result.round_tube_cost > 0) {
+            html += `<tr>
+                <td>Round Tube</td>
+                <td>${result.round_tube_details}</td>
+                <td>${result.round_tube_cost.toFixed(2)}</td>
+            </tr>`;
+        }
+
+        // Add Wheels cost if selected
+        if (result.wheels_cost > 0) {
+            html += `<tr>
+                <td>Wheels</td>
+                <td>${result.wheels_details}</td>
+                <td>${result.wheels_cost.toFixed(2)}</td>
+            </tr>`;
+        }
+
+        // Add total
+        html += `<tr class="table-primary">
+            <td colspan="2"><strong>Total Cost</strong></td>
+            <td><strong>${result.total_cost.toFixed(2)}</strong></td>
+        </tr>`;
+
+        html += '</tbody></table></div>';
+
+        // Add selling price suggestions
+        html += '<h4 class="mt-4">Suggested Selling Prices</h4>';
+        html += '<div class="table-responsive"><table class="table table-bordered">';
+        html += '<thead><tr><th>Margin</th><th>Selling Price (PKR)</th><th>Profit (PKR)</th></tr></thead>';
+        html += '<tbody>';
+
+        const margins = [0.2, 0.3, 0.4]; // 20%, 30%, 40% margins
+        margins.forEach(margin => {
+            const sellingPrice = result.total_cost * (1 + margin);
+            const profit = sellingPrice - result.total_cost;
+            html += `<tr>
+                <td>${(margin * 100).toFixed(0)}%</td>
+                <td>${sellingPrice.toFixed(2)}</td>
+                <td>${profit.toFixed(2)}</td>
+            </tr>`;
+        });
+
+        html += '</tbody></table></div>';
+
+        resultsDiv.innerHTML = html;
+        resultsDiv.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Add event listeners for tube size inputs
+    const addSquareTubeBtn = document.getElementById('addSquareTube');
+    if (addSquareTubeBtn) {
+        addSquareTubeBtn.addEventListener('click', function() {
+            const width = document.getElementById('newSquareTubeWidth').value;
+            const price = document.getElementById('newSquareTubePrice').value;
+            
+            if (width && price) {
+                squareTubeSizes.push({ width: parseFloat(width), price: parseFloat(price) });
+                updateSquareTubeList();
+                
+                // Update hidden input
+                document.getElementById('squareTubeSizes').value = JSON.stringify(squareTubeSizes);
+                
+                // Clear inputs
+                document.getElementById('newSquareTubeWidth').value = '';
+                document.getElementById('newSquareTubePrice').value = '';
+            }
+        });
+    }
+
+    const addRoundTubeBtn = document.getElementById('addRoundTube');
+    if (addRoundTubeBtn) {
+        addRoundTubeBtn.addEventListener('click', function() {
+            const diameter = document.getElementById('newRoundTubeDia').value;
+            const price = document.getElementById('newRoundTubePrice').value;
+            
+            if (diameter && price) {
+                roundTubeSizes.push({ diameter: parseFloat(diameter), price: parseFloat(price) });
+                updateRoundTubeList();
+                
+                // Update hidden input
+                document.getElementById('roundTubeSizes').value = JSON.stringify(roundTubeSizes);
+                
+                // Clear inputs
+                document.getElementById('newRoundTubeDia').value = '';
+                document.getElementById('newRoundTubePrice').value = '';
+            }
+        });
+    }
+
+    // Functions to remove tubes (these need to be global)
+    window.removeSquareTube = function(index) {
+        squareTubeSizes.splice(index, 1);
+        updateSquareTubeList();
+        document.getElementById('squareTubeSizes').value = JSON.stringify(squareTubeSizes);
+    };
+
+    window.removeRoundTube = function(index) {
+        roundTubeSizes.splice(index, 1);
+        updateRoundTubeList();
+        document.getElementById('roundTubeSizes').value = JSON.stringify(roundTubeSizes);
+    };
+
+    // Function to load settings from the server
+    async function loadSettings() {
+        try {
+            const response = await fetch('/settings');
+            const data = await response.json();
+            
+            // Update sheet price
+            const sheetPriceInput = document.getElementById('sheet_price');
+            if (sheetPriceInput) {
+                sheetPriceInput.value = data.sheet_price;
+            }
+            
+            // Update tube lists
+            squareTubeSizes = data.square_tube_sizes || [];
+            roundTubeSizes = data.round_tube_sizes || [];
+            updateSquareTubeList();
+            updateRoundTubeList();
+            
+            // Update wheel prices
+            const wheel3Input = document.getElementById('wheel_3_price');
+            const wheel4Input = document.getElementById('wheel_4_price');
+            if (wheel3Input) wheel3Input.value = data.wheel_3_price;
+            if (wheel4Input) wheel4Input.value = data.wheel_4_price;
+            
+            // Update hidden inputs
+            const squareTubeSizesInput = document.getElementById('squareTubeSizes');
+            const roundTubeSizesInput = document.getElementById('roundTubeSizes');
+            if (squareTubeSizesInput) squareTubeSizesInput.value = JSON.stringify(squareTubeSizes);
+            if (roundTubeSizesInput) roundTubeSizesInput.value = JSON.stringify(roundTubeSizes);
+        } catch (error) {
+            console.error('Error loading settings:', error);
+        }
+    }
+
+    // Load settings when page loads
+    document.addEventListener('DOMContentLoaded', loadSettings);
 });

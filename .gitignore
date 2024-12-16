@@ -1,3 +1,7 @@
+# Settings file
+settings.json
+
+# Python
 __pycache__/
 *.py[cod]
 *$py.class

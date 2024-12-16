@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, redirect, url_for
 from flask_cors import CORS
 import json
 import os
@@ -8,122 +8,96 @@ CORS(app)
 
 class PriceCalculator:
     def __init__(self):
-        # Sheet prices per kg
-        self.sheet_prices = {
-            1.2: 0,  # 1.2mm sheet price
-            1.5: 0,  # 1.5mm sheet price
-            2.0: 0   # 2.0mm sheet price
-        }
-        # Tube prices per ft
-        self.tube_prices = {
-            '1.5x1.5': 0,  # 1.5" x 1.5" tube price
-            '2.0x2.0': 0   # 2.0" x 2.0" tube price
-        }
-        # Wheel prices per set of 4
-        self.wheel_prices = {
-            '3': 0,  # 3" wheels
-            '4': 0   # 4" wheels
-        }
-        self.labor_margin = 0.2  # 20% labor margin
-        self.profit_margin = 0.3  # 30% profit margin
+        self.sheet_price = 0
+        self.sheet_thicknesses = [1.2, 1.5, 2.0]
+        self.square_tube_sizes = [
+            {'width': 1.5, 'height': 1.5, 'price': 0},
+            {'width': 2.0, 'height': 2.0, 'price': 0}
+        ]
+        self.round_tube_sizes = [
+            {'diameter': 1.5, 'price': 0},
+            {'diameter': 2.0, 'price': 0}
+        ]
+        self.wheel_3_price = 0
+        self.wheel_4_price = 0
+        self.load_settings()
 
-    def set_prices(self, prices):
-        try:
-            # Set sheet prices
-            self.sheet_prices[1.2] = float(prices.get('sheet_1_2_price', 0))
-            self.sheet_prices[1.5] = float(prices.get('sheet_1_5_price', 0))
-            self.sheet_prices[2.0] = float(prices.get('sheet_2_0_price', 0))
-            
-            # Set tube prices
-            self.tube_prices['1.5x1.5'] = float(prices.get('tube_1_5_price', 0))
-            self.tube_prices['2.0x2.0'] = float(prices.get('tube_2_0_price', 0))
-            
-            # Set wheel prices
-            self.wheel_prices['3'] = float(prices.get('wheel_3_price', 0))
-            self.wheel_prices['4'] = float(prices.get('wheel_4_price', 0))
-            
-            return True, "Prices updated successfully"
-        except ValueError as e:
-            return False, "Invalid price value provided"
-        except Exception as e:
-            return False, str(e)
+    def save_settings(self):
+        settings = {
+            'sheet_price': self.sheet_price,
+            'sheet_thicknesses': self.sheet_thicknesses,
+            'square_tube_sizes': self.square_tube_sizes,
+            'round_tube_sizes': self.round_tube_sizes,
+            'wheel_3_price': self.wheel_3_price,
+            'wheel_4_price': self.wheel_4_price
+        }
+        with open('settings.json', 'w') as f:
+            json.dump(settings, f, indent=4)
+        return True, "Settings saved successfully"
 
-    def calculate_work_table_price(self, dimensions, top_thickness, undershelves, tube_size, wheel_size):
+    def load_settings(self):
         try:
-            # Calculate material costs
-            material_cost = self._calculate_material_cost(dimensions, top_thickness)
-            
-            # Calculate tube costs
-            tube_cost = self._calculate_tube_cost(dimensions, tube_size)
-            
-            # Calculate undershelves cost if any
-            undershelves_cost = self._calculate_undershelves_cost(dimensions, undershelves)
-            
-            # Calculate wheel cost
-            wheel_cost = self._calculate_wheel_cost(wheel_size)
-            
-            # Total material cost
-            total_material_cost = material_cost + tube_cost + undershelves_cost + wheel_cost
-            
-            # Calculate labor cost (20% of material cost)
-            labor_cost = total_material_cost * self.labor_margin
-            
-            # Calculate profit (30% of material + labor cost)
-            subtotal = total_material_cost + labor_cost
-            profit = subtotal * self.profit_margin
-            
-            # Calculate total price
-            total_price = total_material_cost + labor_cost + profit
-            
-            return {
-                "material_cost": round(total_material_cost, 2),
-                "labor_cost": round(labor_cost, 2),
-                "profit": round(profit, 2),
-                "total_price": round(total_price, 2)
-            }
-        except Exception as e:
-            return {
-                "error": str(e)
-            }
+            with open('settings.json', 'r') as f:
+                settings = json.load(f)
+                self.sheet_price = float(settings.get('sheet_price', 0))
+                self.sheet_thicknesses = settings.get('sheet_thicknesses', [1.2, 1.5, 2.0])
+                self.square_tube_sizes = settings.get('square_tube_sizes', [
+                    {'width': 1.5, 'height': 1.5, 'price': 0},
+                    {'width': 2.0, 'height': 2.0, 'price': 0}
+                ])
+                self.round_tube_sizes = settings.get('round_tube_sizes', [
+                    {'diameter': 1.5, 'price': 0},
+                    {'diameter': 2.0, 'price': 0}
+                ])
+                self.wheel_3_price = float(settings.get('wheel_3_price', 0))
+                self.wheel_4_price = float(settings.get('wheel_4_price', 0))
+        except FileNotFoundError:
+            pass
 
     def _calculate_material_cost(self, dimensions, thickness):
         # Calculate area in square feet
         area_sqft = (dimensions['length'] * dimensions['width']) / 144  # Convert to square feet
         
-        # Get price per kg based on thickness
-        price_per_kg = self.sheet_prices.get(thickness, 0)
-        
-        # Approximate weight calculation (this is a simplified calculation)
-        # You may want to adjust these values based on actual material specifications
-        weight_per_sqft = {
-            1.2: 4.9,  # lbs per square foot for 1.2mm
-            1.5: 6.1,  # lbs per square foot for 1.5mm
-            2.0: 8.2   # lbs per square foot for 2.0mm
+        # Weight multiplier based on thickness (lbs per square foot)
+        weight_multipliers = {
+            1.2: 4.9,  # for 1.2mm
+            1.5: 6.1,  # for 1.5mm
+            2.0: 8.2   # for 2.0mm
         }
         
-        weight = area_sqft * weight_per_sqft.get(thickness, 0)
-        # Convert weight to kg (1 lb = 0.453592 kg)
+        # Calculate total weight
+        weight = area_sqft * weight_multipliers[thickness]
+        
+        # Convert to kg (1 lb = 0.453592 kg)
         weight_kg = weight * 0.453592
         
-        return weight_kg * price_per_kg
+        # Calculate cost using the single sheet price
+        return weight_kg * self.sheet_price
 
-    def _calculate_tube_cost(self, dimensions, tube_size):
-        # Calculate perimeter for legs
-        height = dimensions['height']
-        num_legs = 4
-        total_length = height * num_legs
+    def _calculate_tube_cost(self, dimensions, tube_type, tube_size):
+        # Calculate total length needed (perimeter)
+        total_length = (dimensions['length'] + dimensions['width']) * 2
         
-        # Add support bars
-        length_supports = dimensions['length'] / 12  # Convert to feet
-        width_supports = dimensions['width'] / 12    # Convert to feet
-        total_supports_length = (length_supports + width_supports) * 2  # Two supports each way
+        # Convert to feet if dimensions are in inches
+        if dimensions.get('unit', 'in') == 'in':
+            total_length = total_length / 12
         
-        total_tube_length = total_length + total_supports_length
+        # Get tube price based on type and size
+        tube_price = 0
+        if tube_type == 'square':
+            width, height = map(float, tube_size.split('x'))
+            tube = next((t for t in self.square_tube_sizes 
+                        if t['width'] == width and t['height'] == height), None)
+            if tube:
+                tube_price = tube['price']
+        else:  # round tube
+            diameter = float(tube_size)
+            tube = next((t for t in self.round_tube_sizes 
+                        if t['diameter'] == diameter), None)
+            if tube:
+                tube_price = tube['price']
         
-        # Get price per foot based on tube size
-        price_per_ft = self.tube_prices.get(tube_size, 0)
-        
-        return total_tube_length * price_per_ft
+        return total_length * tube_price
 
     def _calculate_undershelves_cost(self, dimensions, num_undershelves):
         if num_undershelves <= 0:
@@ -133,7 +107,7 @@ class PriceCalculator:
         area_sqft = (dimensions['length'] * dimensions['width']) / 144  # Convert to square feet
         
         # Use 1.2mm sheet for undershelves
-        price_per_kg = self.sheet_prices[1.2]
+        price_per_kg = self.sheet_price
         
         # Weight calculation for 1.2mm sheet
         weight_per_sqft = 4.9  # lbs per square foot
@@ -144,14 +118,58 @@ class PriceCalculator:
 
     def _calculate_wheel_cost(self, wheel_size):
         # Get price for the selected wheel size (price is for a set of 4)
-        return self.wheel_prices.get(wheel_size, 0)
+        return {'3': self.wheel_3_price, '4': self.wheel_4_price}.get(wheel_size, 0)
+
+    def calculate_price(self, data):
+        try:
+            dimensions = data['dimensions']
+            top_thickness = data['top_thickness']
+            undershelves = data['undershelves']
+            tube_type = data['tube_type']
+            tube_size = data['tube_size']
+            wheel_size = data['wheel_size']
+            
+            # Calculate material costs
+            material_cost = self._calculate_material_cost(dimensions, top_thickness)
+            tube_cost = self._calculate_tube_cost(dimensions, tube_type, tube_size)
+            undershelves_cost = self._calculate_undershelves_cost(dimensions, undershelves)
+            wheel_cost = self._calculate_wheel_cost(wheel_size)
+            
+            total_material_cost = material_cost + tube_cost + undershelves_cost + wheel_cost
+            
+            # Calculate labor cost (30% of material cost)
+            labor_cost = total_material_cost * 0.3
+            
+            # Calculate profit (20% of total cost)
+            subtotal = total_material_cost + labor_cost
+            profit = subtotal * 0.2
+            
+            # Calculate total price
+            total_price = subtotal + profit
+            
+            return {
+                'material_cost': round(total_material_cost),
+                'labor_cost': round(labor_cost),
+                'profit': round(profit),
+                'total_price': round(total_price)
+            }
+        except Exception as e:
+            print(f"Error calculating price: {e}")
+            return None
 
 price_calculator = PriceCalculator()
 
 # Material Configurations
 MATERIAL_CONFIG = {
     'thicknesses': [1.2, 1.5, 2.0],
-    'tube_sizes': ['1.5x1.5', '2.0x2.0'],
+    'square_tube_sizes': [
+        {'width': 1.5, 'height': 1.5, 'price': 0},
+        {'width': 2.0, 'height': 2.0, 'price': 0}
+    ],
+    'round_tube_sizes': [
+        {'diameter': 1.5, 'price': 0},
+        {'diameter': 2.0, 'price': 0}
+    ],
     'wheel_sizes': ['3', '4'],
     'max_undershelves': 3
 }
@@ -163,31 +181,50 @@ def index():
 @app.route('/settings', methods=['GET', 'POST'])
 def settings():
     if request.method == 'POST':
-        success, message = price_calculator.set_prices(request.form)
-        return jsonify({
-            "status": "success" if success else "error",
-            "message": message
-        })
+        settings_data = {
+            'sheet_price': request.form.get('sheet_price'),
+            'sheet_thicknesses': request.form.get('sheet_thicknesses'),
+            'square_tube_sizes': request.form.get('square_tube_sizes'),
+            'round_tube_sizes': request.form.get('round_tube_sizes'),
+            'wheel_sizes': request.form.get('wheel_sizes')
+        }
+        
+        with open('settings.json', 'w') as f:
+            json.dump(settings_data, f, indent=4)
+        
+        return redirect(url_for('index'))
     
-    # For GET requests, return the settings page with current prices
-    return render_template('settings.html', prices={
-        'sheet_prices': price_calculator.sheet_prices,
-        'tube_prices': price_calculator.tube_prices,
-        'wheel_prices': price_calculator.wheel_prices
-    })
+    # GET request - return current settings
+    try:
+        with open('settings.json', 'r') as f:
+            settings_data = json.load(f)
+    except FileNotFoundError:
+        settings_data = {
+            'sheet_price': '',
+            'sheet_thicknesses': '[]',
+            'square_tube_sizes': '[]',
+            'round_tube_sizes': '[]',
+            'wheel_sizes': '[]'
+        }
+    
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return jsonify(settings_data)
+    
+    return render_template('settings.html', settings=settings_data)
 
 @app.route('/calculate_price', methods=['POST'])
 def calculate_price():
     data = request.json
-    result = price_calculator.calculate_work_table_price(
-        dimensions=data['dimensions'],
-        top_thickness=data['top_thickness'],
-        undershelves=data['undershelves'],
-        tube_size=data['tube_size'],
-        wheel_size=data['wheel_size']
-    )
+    result = price_calculator.calculate_price(data)
     return jsonify(result)
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5002))
-    app.run(host='0.0.0.0', port=port, debug=True)
+    app.config['TEMPLATES_AUTO_RELOAD'] = True
+    app.jinja_env.auto_reload = True
+    app.run(host='0.0.0.0', port=port, debug=True, use_reloader=True, extra_files=[
+        './templates/index.html',
+        './templates/base.html',
+        './static/js/main.js',
+        './static/css/style.css'
+    ])
